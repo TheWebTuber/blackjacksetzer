@@ -1,50 +1,47 @@
 (() => {
-  'use strict';
-  const menu = document.querySelector('.menu-toggle');
+  const toggle = document.querySelector('.menu-toggle');
   const nav = document.getElementById('primary-nav');
-  if (menu && nav) {
-    const close = () => { nav.classList.remove('open');menu.setAttribute('aria-expanded', 'false');menu.setAttribute('aria-label','Open navigation'); };
-    menu.addEventListener('click', () => { const isOpen = nav.classList.toggle('open');menu.setAttribute('aria-expanded', String(isOpen));menu.setAttribute('aria-label',isOpen?'Close navigation':'Open navigation'); });
-    nav.querySelectorAll('a').forEach(link => link.addEventListener('click',close));
-    document.addEventListener('keydown', e => { if(e.key === 'Escape') close(); });
-  }
-  document.getElementById('year').textContent = new Date().getFullYear();
-  const fortunes = [
-    {symbol:'✦',title:'A little magic',message:'A spark of magic follows you home. Blackjack insists he had absolutely nothing to do with it.'},
-    {symbol:'☾',title:'The grand escape',message:'Your next adventure starts behind a curtain. Somehow the fox is already there, applauding himself.'},
-    {symbol:'♠',title:'A terrible joke',message:'You are granted one truly dreadful joke. The audience groans. Blackjack calls it a masterpiece.'},
-    {symbol:'✧',title:'An encore!',message:'The show ends… and immediately begins again. Someone forgot to tell the fox about the schedule.'},
-    {symbol:'★',title:'A lucky star',message:'A wandering star lights your next chapter. Not even Blackjack can explain where he pulled it from.'},
-    {symbol:'♣',title:'Fox business',message:'You notice one missing card and three suspicious pawprints. The magician has already left the stage.'},
-    {symbol:'♡',title:'A crew reunion',message:'The curtain opens on familiar faces. This time, everyone shares the spotlight and the laughter.'},
-    {symbol:'✿',title:'Forest whispers',message:'A soft voice from the forest hints at another adventure. Blackjack answers with the worst pun imaginable.'},
-    {symbol:'✵',title:'The final trick',message:'The magician bows, the lights fade, and the deck vanishes. Look behind your ear. Yes, really.'}
-  ];
-  const cards = [...document.querySelectorAll('.trick-card')];
-  const output = document.getElementById('trick-message');
-  let draws=[];let used=false;
-  function shuffle(){
-    draws = fortunes.map((_,i)=>i);
-    for(let i=draws.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[draws[i],draws[j]]=[draws[j],draws[i]];}
-    used=false;
-    cards.forEach((card,i)=>{
-      card.classList.remove('is-revealed');card.disabled=false;card.setAttribute('aria-pressed','false');
-      card.setAttribute('aria-label',`Reveal magic card ${i+1}`);
-      card.querySelector('.revealed-symbol').textContent='✧';
-      card.querySelector('.revealed-title').textContent='Mystery';
+  if (toggle && nav) {
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      toggle.setAttribute('aria-label', expanded ? 'Open menu' : 'Close menu');
+      nav.classList.toggle('open', !expanded);
     });
-    output.textContent='✦ The deck is shuffled. Choose a card, if you dare. ✦';
+    nav.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Open menu');
+      nav.classList.remove('open');
+    }));
   }
-  cards.forEach((card,i)=>card.addEventListener('click',()=>{
-    if(used)return;
-    used=true;
-    const selected=fortunes[draws[i]];
-    card.querySelector('.revealed-symbol').textContent=selected.symbol;
-    card.querySelector('.revealed-title').textContent=selected.title;
-    card.classList.add('is-revealed');card.setAttribute('aria-pressed','true');
-    cards.forEach(other=>{other.disabled=true});
-    output.textContent=selected.message;
-  }));
-  document.getElementById('shuffle-cards')?.addEventListener('click',shuffle);
-  shuffle();
+
+  // Preserve the existing Roll Your Fate idea from Blackjack's previous homepage.
+  const fortunes = [
+    'The cards whisper: a peculiar adventure is about to begin. Try not to look suspicious.',
+    'A lucky star appears above you. Blackjack is already wondering how to steal it.',
+    'You drew the wild card. Congratulations! The rules have become suggestions.',
+    'A shadow crosses the table. There is laughter. Probably nothing to worry about.',
+    'Fortune smiles upon you! Or is that just the fox grinning?',
+    'Your next chapter starts with one unexpected choice. Make it a good one.',
+    'A royal flush! Unfortunately, the fox has the other deck.',
+    'The house grants you one wish: a good story and someone to share it with.',
+    'A mysterious door opens. Behind it: another card, of course.',
+    'The dealer folds his arms. “Interesting move,” he says. You are now nervous.'
+  ];
+  let lastFortune = -1;
+  const message = document.getElementById('fortune-message');
+  const panel = document.querySelector('.fortune-panel');
+  function deal() {
+    if (!message) return;
+    let idx = Math.floor(Math.random() * fortunes.length);
+    if (fortunes.length > 1 && idx === lastFortune) idx = (idx + 1) % fortunes.length;
+    lastFortune = idx;
+    message.textContent = fortunes[idx];
+    panel?.classList.remove('dealt');
+    void panel?.offsetWidth;
+    panel?.classList.add('dealt');
+    document.getElementById('fate')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  }
+  document.getElementById('roll-fate')?.addEventListener('click', deal);
+  document.getElementById('deal-again')?.addEventListener('click', deal);
 })();
